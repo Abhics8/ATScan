@@ -1,13 +1,3 @@
----
-title: ATS Agent
-emoji: 📄
-colorFrom: blue
-colorTo: indigo
-sdk: docker
-app_port: 7860
-pinned: false
----
-
 # 📄 ATS Resume Checker
 
 ### Find out if your resume actually makes it past the robots — before you apply.

@@ -10,106 +10,111 @@ pinned: false
 
 # 📄 ATS Resume Checker
 
-**Will your resume survive a company's Applicant Tracking System?**
+### Find out if your resume actually makes it past the robots — before you apply.
 
-Most resumes are filtered by software before a human ever sees them. ATS Resume
-Checker simulates how a generic ATS parses your PDF — stripping the visual
-layout and reading the raw text the way the parser does — then tells you which
-fields it can actually extract, how well you match a job posting, and exactly
-what to fix.
+When you apply for a job online, a human usually isn't the first one to read your
+resume. A piece of software called an **ATS** (Applicant Tracking System) scans it
+first, pulls out your details, and decides whether you even reach a recruiter.
+The problem: these systems are picky. A nice-looking resume can confuse them, and
+good candidates get filtered out for reasons that have nothing to do with their
+skills.
 
-🔗 **Live demo:** https://ab0202000-ats-agent.hf.space
+**This tool shows you what that software sees.** Upload your resume, optionally
+paste the job posting, and in a few seconds you get a plain-English report card.
+
+👉 **Try it here:** https://ab0202000-ats-agent.hf.space
 
 ---
 
-## What it does
+## What you get
 
-- **Parse simulation** — extracts your resume the way an ATS does (no visual
-  layout), so you can see what the machine *actually* reads vs. what you see.
-- **Structural diagnostics** — flags the things that break real parsers:
-  multi-column layouts, tables, text-in-images, header/footer contact info, and
-  non-standard fonts.
-- **Field extraction** — shows which fields (name, contact, titles, employers,
-  education, skills) the parser can reliably pull, and which come out garbled or
-  missing.
-- **Keyword matching** — paste a job description and get a match score plus the
-  important terms you're missing.
-- **Actionable fixes** — a prioritized, concrete list of changes to raise your
-  ATS readiness.
+- **An ATS readiness score (0–100)** — how cleanly the software can read your
+  resume.
+- **A keyword match score** — if you paste the job description, how well your
+  resume lines up with what the employer is looking for.
+- **What the system actually captured** — your name, contact info, job titles,
+  education, and skills, *exactly as the software pulled them*. If something is
+  missing or jumbled here, that's a red flag.
+- **A clear list of fixes** — specific, prioritized changes you can make, in
+  everyday language.
+- **Warnings about common mistakes** — like using two columns, tables, images, or
+  putting your phone number in the page header (all things that quietly trip up
+  these systems).
 
-Works for the parsing behavior common to Workday, Greenhouse, Lever, Taleo, and
-iCIMS. (Every vendor's parser is proprietary, so scores are guidance, not a
-guarantee.)
+## Why it matters
 
-## Two ways to use it
+You could have the perfect background and still get auto-rejected because:
 
-| Interface | Command |
-|-----------|---------|
-| **Web app** | `python web.py` → open http://localhost:8011 |
-| **CLI** | `python score.py resume.pdf --jd job.txt` |
+- Your resume uses **two columns**, and the software reads straight across,
+  scrambling your sentences.
+- Your **contact details are in the header**, which some systems ignore entirely.
+- Your resume is really an **image** (or was scanned), so the software reads
+  almost nothing.
 
-Both share the same evaluation engine — the website is just a convenience layer
-over the pipeline.
+This tool catches those issues so you can fix them *before* they cost you an
+interview.
 
-## Architecture
+## How to use it
 
-A small, modular pipeline — each stage is independently testable:
+1. Open the link above.
+2. Drag in your resume (PDF).
+3. (Optional) Paste the job posting you're applying to.
+4. Click **Analyze** and read your report.
+
+A simple rule of thumb:
+
+| Score | What to do |
+|-------|------------|
+| **85+** | You're good — apply as-is. |
+| **70–84** | Fix the flagged issues first, then apply. |
+| **Below 70** | Likely getting filtered out — fix before applying anywhere. |
+
+---
+
+## For developers
+
+A small, modular pipeline with both a web app and a command-line version sharing
+one engine:
 
 ```
-pdf.py        PDF → ATS-style raw text + parse-breaker detection (PyMuPDF)
-prompts/      Prompt templates (Jinja2)
-models.py     Typed output schemas (Pydantic)
-llm_utils.py  Prompt rendering + model call + response caching
-evaluator.py  The single entry point: ParsedResume (+JD) → Evaluation
-config.py     Environment-driven config (.env)
-score.py      CLI orchestrator
-web.py        FastAPI website over the same pipeline
-static/       Frontend (HTML / CSS / JS)
+pdf.py        Reads the PDF the way an ATS does + detects layout problems
+prompts/      Prompt templates
+models.py     Structured output schemas
+llm_utils.py  Prompt rendering, model calls, response caching, fallback
+evaluator.py  Single entry point: parsed resume (+ job) → evaluation
+config.py     Settings loaded from the environment (.env)
+score.py      Command-line version
+web.py        Web app (FastAPI)
+static/       Web frontend
 ```
 
-The LLM layer is **provider-agnostic** (set via `LLM_PROVIDER`) and resilient —
-it retries transient errors and falls back across models if one is overloaded.
+**Tech:** Python · FastAPI · PyMuPDF · Jinja2 · Pydantic · Google Gemini API · Docker
 
-## Tech stack
-
-Python · FastAPI · PyMuPDF · Jinja2 · Pydantic · Google Gemini API · Docker
-
-## Quick start
+**Run locally:**
 
 ```bash
 git clone https://github.com/Abhics8/ats-agent
 cd ats-agent
 pip install -r requirements.txt
 
-cp .env.example .env
-# add your free Google AI Studio key (https://aistudio.google.com/apikey):
-#   LLM_PROVIDER=gemini
-#   GEMINI_API_KEY=...
+cp .env.example .env   # add a free key from https://aistudio.google.com/apikey
+python web.py          # open http://localhost:8011
 ```
 
-Run the website:
+Command line:
 
 ```bash
-python web.py            # http://localhost:8011
+python score.py resume.pdf --jd job.txt
 ```
 
-Or the CLI:
+**Deploy:** includes a `Dockerfile` (port 7860). Push to any container host and set
+`GEMINI_API_KEY` and `LLM_PROVIDER=gemini` as secrets. Runs as-is on Hugging Face
+Spaces.
 
-```bash
-python score.py resume.pdf
-python score.py resume.pdf --jd job.txt --json report.json
-```
+## A note on privacy
 
-## Deploy
-
-Ships with a `Dockerfile` (listens on port 7860). Deploy to any container host:
-push the repo and set `GEMINI_API_KEY` + `LLM_PROVIDER=gemini` as environment
-secrets. The included config runs as-is on Hugging Face Spaces (Docker SDK).
-
-## Privacy note
-
-Uploaded resumes are sent to the configured model provider's API for analysis.
-Run locally if you'd rather keep your documents on your own machine.
+Resumes you upload are sent to the AI provider's API to be analyzed. If you'd
+rather keep your documents on your own computer, run it locally.
 
 ## License
 

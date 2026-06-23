@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ATS Resume Checker</title>
+  <meta name="description" content="See whether your resume survives a company's ATS — and how to fix it." />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap">
+      <h1>📄 ATS Resume Checker</h1>
+      <p>Upload your resume and a job posting. We simulate how a company's Applicant
+         Tracking System reads your PDF, then tell you what breaks and how to fix it.</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="card form">
+      <form id="form">
+        <label class="drop" id="drop">
+          <input type="file" id="resume" accept="application/pdf" hidden />
+          <span id="drop-label">Drop your resume PDF here or click to browse</span>
+        </label>
+
+        <label class="field">
+          <span>Job description <em>(optional — enables keyword matching)</em></span>
+          <textarea id="jd" rows="7" placeholder="Paste the job posting here…"></textarea>
+        </label>
+
+        <button type="submit" id="go" disabled>Analyze my resume</button>
+      </form>
+    </section>
+
+    <section id="status" class="status" hidden></section>
+
+    <section id="results" class="results" hidden>
+      <div class="scores">
+        <div class="score" id="score-ats">
+          <div class="ring"><span></span></div>
+          <h3>ATS readiness</h3>
+        </div>
+        <div class="score" id="score-kw" hidden>
+          <div class="ring"><span></span></div>
+          <h3>Keyword match</h3>
+        </div>
+      </div>
+
+      <div class="card"><p id="summary" class="summary"></p></div>
+
+      <div class="grid">
+        <div class="card" id="fixes-card">
+          <h2>✅ Prioritized fixes</h2>
+          <ul id="fixes"></ul>
+        </div>
+
+        <div class="card" id="kw-card" hidden>
+          <h2>🔑 Keyword match</h2>
+          <div class="kw-cols">
+            <div><h4>Matched</h4><ul id="kw-matched"></ul></div>
+            <div><h4>Missing</h4><ul id="kw-missing"></ul></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>🧾 What the ATS captures</h2>
+          <table id="fields"></table>
+          <div id="parse-problems"></div>
+        </div>
+
+        <div class="card" id="warn-card" hidden>
+          <h2>⚠️ Structural warnings</h2>
+          <ul id="warnings"></ul>
+        </div>
+      </div>
+
+      <details class="card">
+        <summary>See the raw text an ATS extracts from your PDF</summary>
+        <pre id="dumb"></pre>
+      </details>
+    </section>
+  </main>
+
+  <footer class="wrap">
+    <p>Simulates the parsing behavior common to Workday, Greenhouse, Lever, Taleo &amp;
+       iCIMS. Each company's parser is proprietary, so treat scores as guidance.</p>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

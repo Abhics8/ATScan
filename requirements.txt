@@ -1,0 +1,16 @@
+# Core
+PyMuPDF==1.26.3
+pydantic==2.11.7
+Jinja2==3.1.6
+python-dotenv==1.0.1
+
+# Free LLM provider (default)
+google-genai==1.0.0
+
+# Paid LLM provider (optional — only needed if LLM_PROVIDER=anthropic)
+anthropic>=0.92.0
+
+# Website (optional — only needed for `python web.py`)
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+python-multipart==0.0.18

@@ -1,0 +1,19 @@
+=== RAW ATS-EXTRACTED TEXT ===
+{{ resume.text if resume.text else "(no text extracted)" }}
+
+=== MECHANICAL STRUCTURE REPORT ===
+pages={{ resume.page_count }} words={{ resume.word_count }} images={{ resume.image_count }} multi_column={{ resume.multi_column }} tables={{ resume.has_tables }}
+fonts={{ resume.fonts | join(", ") if resume.fonts else "n/a" }}
+warnings:
+{% for w in resume.warnings %}  - {{ w }}
+{% else %}  (none)
+{% endfor %}
+{% if resume.header_footer_text %}header/footer text:
+{% for t in resume.header_footer_text %}  - {{ t }}
+{% endfor %}{% endif %}
+{% if job_description %}
+=== JOB DESCRIPTION ===
+{{ job_description }}
+{% else %}
+(No job description provided — set keyword_match to null.)
+{% endif %}

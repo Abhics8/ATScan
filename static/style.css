@@ -109,7 +109,12 @@ table td:first-child { color: var(--muted); width: 38%; }
 #warnings li { color: var(--warn); }
 
 details summary { cursor: pointer; color: var(--muted); }
-pre { white-space: pre-wrap; background: var(--panel-2); padding: 14px; border-radius: 10px; margin-top: 12px; max-height: 320px; overflow: auto; font-size: .85rem; }
+pre { white-space: pre-wrap; background: var(--panel-2); padding: 14px; border-radius: 10px; margin-top: 12px; max-height: 360px; overflow: auto; font-size: .85rem; line-height: 1.5; }
+
+.legend { color: var(--muted); font-size: .9rem; margin: 0 0 4px; }
+.legend-note { color: var(--muted); font-size: .85rem; margin: 0 0 4px; opacity: .85; }
+mark.hit { background: rgba(52, 211, 153, .22); color: var(--good); border-radius: 4px; padding: 0 2px; font-weight: 600; }
+mark.contact { display: inline; background: rgba(91, 140, 255, .22); color: #9ec1ff; border-radius: 4px; padding: 0 2px; font-weight: 600; }
 
 footer { color: var(--muted); font-size: .85rem; padding: 24px 0 48px; text-align: center; }
 

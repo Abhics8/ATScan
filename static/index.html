@@ -75,10 +75,15 @@
         </div>
       </div>
 
-      <details class="card">
-        <summary>See the raw text an ATS extracts from your PDF</summary>
+      <div class="card" id="extracted-card">
+        <h2>🔍 Exactly what the ATS reads from your PDF</h2>
+        <p class="legend">
+          <mark class="hit">green</mark> = a keyword the job asked for that the parser found &nbsp;·&nbsp;
+          <mark class="contact">blue</mark> = contact details it captured
+        </p>
+        <p class="legend-note" id="legend-note"></p>
         <pre id="dumb"></pre>
-      </details>
+      </div>
     </section>
   </main>
 

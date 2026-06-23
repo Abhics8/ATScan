@@ -137,7 +137,49 @@ function render({ evaluation, parse }) {
     warnCard.hidden = true;
   }
 
-  $("dumb").textContent = parse.text || "(no text extracted)";
+  renderExtracted(parse.text, e, r.keyword_match);
+
   $("results").hidden = false;
   $("results").scrollIntoView({ behavior: "smooth" });
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+function escapeRegex(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function renderExtracted(text, fields, keywordMatch) {
+  const note = $("legend-note");
+  if (!text) {
+    $("dumb").textContent = "(no text could be extracted — your resume may be image-based/scanned)";
+    note.textContent = "";
+    return;
+  }
+
+  let html = escapeHtml(text);
+
+  // Blue: contact details the parser actually captured.
+  for (const f of [fields.email, fields.phone]) {
+    if (f) html = html.replace(new RegExp(escapeRegex(f), "g"), `<mark class="contact">${escapeHtml(f)}</mark>`);
+  }
+
+  // Green: matched keywords from the job description (longest first so phrases win).
+  const matched = ((keywordMatch && keywordMatch.matched) || [])
+    .filter(Boolean)
+    .sort((a, b) => b.length - a.length);
+  let hits = 0;
+  for (const kw of matched) {
+    const re = new RegExp("(?<![\\w>])(" + escapeRegex(kw) + ")(?![\\w<])", "gi");
+    html = html.replace(re, (m) => { hits++; return `<mark class="hit">${m}</mark>`; });
+  }
+
+  $("dumb").innerHTML = html;
+
+  if (keywordMatch) {
+    note.textContent = `Found ${matched.length} of the job's keywords highlighted in your resume text.`;
+  } else {
+    note.textContent = "Tip: paste a job description above and re-analyze to see keyword matches highlighted here.";
+  }
 }

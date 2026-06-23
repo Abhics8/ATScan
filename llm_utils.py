@@ -94,15 +94,27 @@ def _gemini(system: str, user: str, schema: Type[T], model: str) -> T:
     )
 
     client = genai.Client(api_key=config.GEMINI_API_KEY)
-    response = client.models.generate_content(
-        model=model,
-        contents=user,
-        config=types.GenerateContentConfig(
-            system_instruction=instruction,
-            response_mime_type="application/json",
-            max_output_tokens=8000,
-        ),
+    cfg = types.GenerateContentConfig(
+        system_instruction=instruction,
+        response_mime_type="application/json",
+        max_output_tokens=8000,
     )
+
+    # Free-tier models occasionally return 503 (overloaded) / 429 (rate limit).
+    # Retry transient errors with backoff before giving up.
+    import time
+
+    attempts = 4
+    for i in range(attempts):
+        try:
+            response = client.models.generate_content(model=model, contents=user, config=cfg)
+            break
+        except Exception as exc:  # noqa: BLE001
+            msg = str(exc)
+            transient = any(s in msg for s in ("503", "UNAVAILABLE", "429", "overloaded", "high demand"))
+            if not transient or i == attempts - 1:
+                raise
+            time.sleep(2 * (i + 1))  # 2s, 4s, 6s
 
     text = (response.text or "").strip()
     if text.startswith("```"):

@@ -93,6 +93,8 @@ def _gemini(system: str, user: str, schema: Type[T], model: str) -> T:
         + schema_json
     )
 
+    import time
+
     client = genai.Client(api_key=config.GEMINI_API_KEY)
     cfg = types.GenerateContentConfig(
         system_instruction=instruction,
@@ -100,21 +102,27 @@ def _gemini(system: str, user: str, schema: Type[T], model: str) -> T:
         max_output_tokens=8000,
     )
 
-    # Free-tier models occasionally return 503 (overloaded) / 429 (rate limit).
-    # Retry transient errors with backoff before giving up.
-    import time
-
-    attempts = 4
-    for i in range(attempts):
-        try:
-            response = client.models.generate_content(model=model, contents=user, config=cfg)
+    # Try the primary model, then fall back across other free models. Each model
+    # gets a couple of retries for transient 503/429 spikes before moving on.
+    candidates = [model] + [m for m in config.GEMINI_FALLBACKS if m != model]
+    response = None
+    last_exc: Exception | None = None
+    for cand in candidates:
+        for i in range(3):
+            try:
+                response = client.models.generate_content(model=cand, contents=user, config=cfg)
+                break
+            except Exception as exc:  # noqa: BLE001
+                last_exc = exc
+                msg = str(exc)
+                transient = any(s in msg for s in ("503", "UNAVAILABLE", "429", "overloaded", "high demand"))
+                if not transient or i == 2:
+                    break  # give up on this model, try the next candidate
+                time.sleep(2 * (i + 1))
+        if response is not None:
             break
-        except Exception as exc:  # noqa: BLE001
-            msg = str(exc)
-            transient = any(s in msg for s in ("503", "UNAVAILABLE", "429", "overloaded", "high demand"))
-            if not transient or i == attempts - 1:
-                raise
-            time.sleep(2 * (i + 1))  # 2s, 4s, 6s
+    if response is None:
+        raise last_exc  # type: ignore[misc]
 
     text = (response.text or "").strip()
     if text.startswith("```"):
